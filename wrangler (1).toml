@@ -1,0 +1,17 @@
+name = "minnesotaschoice-bills"
+main = "workers/bills-worker.js"
+compatibility_date = "2024-01-01"
+
+# Daily cron at 8am UTC (2am CT, well before anyone wakes up)
+[triggers]
+crons = ["0 8 * * *"]
+
+# KV namespace - create this in Cloudflare dashboard first
+# then paste the ID below
+[[kv_namespaces]]
+binding = "BILLS_CACHE"
+id = "PASTE_KV_NAMESPACE_ID_HERE"
+
+# Secrets - set via: wrangler secret put RESEND_API_KEY
+# [vars]
+# No plaintext secrets here
