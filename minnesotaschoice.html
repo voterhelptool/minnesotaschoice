@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#D72B2B">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Minnesota's Choice</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=Barlow:wght@400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --red: #D72B2B;
+    --red-bright: #FF3333;
+    --black: #0A0A0A;
+    --gray: #161616;
+    --card: #1E1E1E;
+    --border: #2C2C2C;
+    --white: #F4EFE6;
+    --muted: #6A6460;
+    --green: #2E7D52;
+    --green-bright: #3DAA6A;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { height:100%; background:var(--black); color:var(--white); font-family:'Barlow',sans-serif; overscroll-behavior:none; overflow-x:hidden; }
+
+  .screen { display:none; flex-direction:column; min-height:100vh; min-height:100dvh; }
+  .screen.active { display:flex; }
+
+  /* TICKER */
+  .ticker-wrap { background:var(--red); overflow:hidden; padding:0.45rem 0; flex-shrink:0; }
+  .ticker { display:flex; animation:ticker 22s linear infinite; white-space:nowrap; }
+  .ticker span { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--white); padding-right:3rem; flex-shrink:0; }
+  @keyframes ticker { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* TOPBAR */
+  .topbar { display:flex; justify-content:space-between; align-items:center; padding:1rem 1.25rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .logo { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.1rem; text-transform:uppercase; letter-spacing:0.04em; }
+  .logo span { color:var(--red); }
+  .live-badge { display:flex; align-items:center; gap:0.4rem; font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; color:var(--red-bright); text-transform:uppercase; }
+  .dot { width:6px; height:6px; background:var(--red-bright); border-radius:50%; animation:blink 1.2s ease-in-out infinite; }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* LANDING */
+  #screen-landing .body { flex:1; display:flex; flex-direction:column; justify-content:center; padding:1.75rem 1.25rem 1.25rem; }
+  .eyebrow { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); margin-bottom:1.25rem; }
+  .headline { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:clamp(2.8rem,13vw,4.5rem); line-height:0.92; text-transform:uppercase; letter-spacing:-0.01em; margin-bottom:1.25rem; }
+  .headline .red { color:var(--red); display:block; }
+  .subline { font-size:0.95rem; color:#908880; line-height:1.55; margin-bottom:2rem; }
+
+  .zip-block { background:var(--gray); border:1px solid var(--border); border-left:4px solid var(--red); padding:1.25rem; margin-bottom:0.75rem; overflow:hidden; }
+  .zip-label { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); margin-bottom:0.6rem; }
+  .zip-row { display:flex; width:100%; overflow:hidden; }
+  .zip-input { flex:1; min-width:0; background:var(--black); border:2px solid var(--border); border-right:none; color:var(--white); font-family:'DM Mono',monospace; font-size:1.2rem; letter-spacing:0.15em; padding:0.75rem 0.75rem; outline:none; -webkit-appearance:none; border-radius:0; }
+  .zip-input::placeholder { color:#333; }
+  .zip-input:focus { border-color:var(--red); }
+  .zip-btn { flex-shrink:0; background:var(--red); border:2px solid var(--red); color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; letter-spacing:0.08em; text-transform:uppercase; padding:0.75rem 1rem; cursor:pointer; border-radius:0; white-space:nowrap; }
+  .zip-btn:active { background:var(--red-bright); }
+  .zip-note { margin-top:0.6rem; font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.06em; color:#444; }
+
+  .stats-row { display:flex; border-top:1px solid var(--border); flex-shrink:0; }
+  .stat { flex:1; padding:0.9rem 0.5rem; border-right:1px solid var(--border); text-align:center; }
+  .stat:last-child { border-right:none; }
+  .stat-n { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.5rem; color:var(--red-bright); line-height:1; margin-bottom:0.2rem; }
+  .stat-l { font-family:'DM Mono',monospace; font-size:0.52rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+
+  /* BILL OF THE WEEK */
+  .botw {
+    background:var(--gray); border:1px solid var(--border);
+    border-left:4px solid var(--red); padding:1rem 1.25rem; margin-bottom:1.25rem;
+  }
+  .botw-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.18em; text-transform:uppercase; color:var(--red); margin-bottom:0.4rem; }
+  .botw-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.15rem; text-transform:uppercase; line-height:1.15; margin-bottom:0.4rem; }
+  .botw-stakes { font-size:0.82rem; color:#908880; line-height:1.5; margin-bottom:0.75rem; }
+  .botw-cta { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--red); }
+
+  /* LOADING */
+  #screen-loading { justify-content:center; align-items:center; }
+  .loading-text { font-family:'DM Mono',monospace; font-size:0.78rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); animation:fadepulse 1s ease-in-out infinite; }
+  @keyframes fadepulse { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+  /* REPS SCREEN */
+  #screen-reps { overflow-y:auto; }
+  .reps-header { padding:1.25rem; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .reps-header h2 { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.4rem; text-transform:uppercase; margin-bottom:0.2rem; }
+  .district-tag { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; color:var(--muted); text-transform:uppercase; }
+
+  /* REP CARD */
+  .rep-card { border-bottom:1px solid var(--border); background:var(--gray); }
+
+  .ledger-strip { background:var(--black); border-bottom:1px solid var(--border); padding:0.65rem 1.25rem; display:flex; align-items:center; gap:0.6rem; }
+  .ledger-count { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; color:var(--red-bright); }
+  .ledger-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+
+  .rep-inner { padding:1.25rem; }
+  .rep-office { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); margin-bottom:0.3rem; }
+  .rep-name { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.4rem; text-transform:uppercase; line-height:1.1; margin-bottom:1rem; }
+
+  /* DO ALL FOUR BANNER */
+  .four-banner {
+    background:var(--black); border:1px solid var(--border); border-left:3px solid var(--red);
+    padding:0.9rem 1rem; margin-bottom:1rem;
+  }
+  .four-banner-title {
+    font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem;
+    text-transform:uppercase; color:var(--white); margin-bottom:0.3rem;
+  }
+  .four-banner-sub {
+    font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.08em;
+    text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem;
+  }
+  .four-steps {
+    display:flex; gap:0.4rem;
+  }
+  .four-step {
+    flex:1; text-align:center; padding:0.4rem 0.2rem;
+    font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.05em;
+    text-transform:uppercase; color:var(--muted); border:1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .four-step.done {
+    background:var(--green); border-color:var(--green); color:var(--white);
+  }
+  .four-step .step-icon { display:block; font-size:0.9rem; margin-bottom:0.2rem; }
+
+  /* ACTION BUTTONS */
+  .action-grid { display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; }
+
+  .act-btn {
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:0.25rem; padding:0.9rem 0.5rem; border:2px solid var(--border);
+    font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.82rem;
+    letter-spacing:0.06em; text-transform:uppercase; cursor:pointer;
+    text-decoration:none; min-height:68px; background:transparent; color:var(--white);
+    transition:all 0.1s; width:100%;
+  }
+  .act-btn:active { transform:scale(0.96); }
+  .act-btn .icon { font-size:1.2rem; }
+
+  .act-btn.call {
+    background:var(--red); border-color:var(--red);
+    grid-column:1/-1; flex-direction:row; gap:0.6rem;
+    font-size:1.1rem; min-height:60px;
+  }
+  .act-btn.call:active { background:var(--red-bright); border-color:var(--red-bright); }
+  .act-btn.done-state { border-color:var(--green); color:var(--green); }
+  .act-btn.done-state .icon::after { content:' ✓'; font-size:0.7rem; }
+
+  .back-btn { width:100%; padding:1rem 1.25rem; background:none; border:none; border-top:1px solid var(--border); color:var(--muted); font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; text-align:left; display:flex; align-items:center; gap:0.5rem; }
+
+  /* CONFIRM SCREEN */
+  #screen-confirm { justify-content:flex-end; }
+  .confirm-backdrop { flex:1; }
+  .confirm-sheet { background:var(--card); border-top:3px solid var(--red); padding:1.75rem 1.25rem; padding-bottom:calc(1.75rem + env(safe-area-inset-bottom)); animation:slideUp 0.3s ease both; }
+  @keyframes slideUp { from{transform:translateY(60px);opacity:0} to{transform:translateY(0);opacity:1} }
+  .confirm-eyebrow { font-family:'DM Mono',monospace; font-size:0.62rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--red); margin-bottom:0.4rem; }
+  .confirm-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.5rem; text-transform:uppercase; margin-bottom:0.4rem; }
+  .confirm-body { font-size:0.85rem; color:#908880; line-height:1.55; margin-bottom:1rem; }
+  .call-script { background:var(--black); border-left:3px solid var(--red); padding:0.85rem 1rem; margin-bottom:1.25rem; font-size:0.82rem; line-height:1.6; color:#C0B8B0; font-style:italic; }
+  .confirm-btns { display:flex; flex-direction:column; gap:0.6rem; }
+  .big-btn { width:100%; padding:1.1rem; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.1rem; letter-spacing:0.08em; text-transform:uppercase; border:2px solid; cursor:pointer; border-radius:0; }
+  .big-btn.yes { background:var(--green); border-color:var(--green); color:var(--white); }
+  .big-btn.yes:active { opacity:0.85; }
+  .big-btn.no { background:transparent; border-color:var(--border); color:var(--muted); }
+
+  /* EMAIL SCREEN */
+  #screen-email { justify-content:flex-end; }
+  #screen-email .confirm-sheet { border-top-color: #1A5276; }
+  #screen-email .confirm-eyebrow { color:#5B8AC0; }
+  #screen-email .call-script { border-left-color:#1A5276; }
+
+  /* TESTIFY SCREEN */
+  #screen-testify { justify-content:flex-end; }
+  #screen-testify .confirm-sheet { border-top-color:#8B6914; }
+  #screen-testify .confirm-eyebrow { color:#C8972A; }
+
+  /* MEETING SCREEN */
+  #screen-meeting { justify-content:flex-end; }
+  #screen-meeting .confirm-sheet { border-top-color:#2E5C3A; }
+  #screen-meeting .confirm-eyebrow { color:#3DAA6A; }
+
+  /* SUCCESS */
+  #screen-success { justify-content:center; align-items:center; }
+  .success-inner { display:flex; flex-direction:column; align-items:center; padding:2rem 1.25rem; text-align:center; }
+  .success-num { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:5rem; color:var(--red-bright); line-height:1; margin-bottom:0.4rem; }
+  .success-label { font-family:'DM Mono',monospace; font-size:0.65rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-bottom:1.5rem; }
+  .success-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.9rem; text-transform:uppercase; margin-bottom:0.6rem; }
+  .success-body { font-size:0.9rem; color:#908880; line-height:1.6; max-width:300px; margin:0 auto 1.5rem; }
+
+  /* NUDGE - do more actions */
+  .nudge-box { background:var(--gray); border:1px solid var(--border); border-left:3px solid var(--red); padding:1rem; margin-bottom:1.5rem; width:100%; max-width:340px; }
+  .nudge-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; text-transform:uppercase; margin-bottom:0.5rem; }
+  .nudge-actions { display:flex; flex-direction:column; gap:0.4rem; }
+  .nudge-btn { width:100%; padding:0.7rem 1rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:0.06em; text-transform:uppercase; border:2px solid var(--border); background:transparent; color:var(--white); cursor:pointer; text-align:left; display:flex; align-items:center; gap:0.6rem; }
+  .nudge-btn:active { border-color:var(--white); }
+  .nudge-btn.completed { border-color:var(--green); color:var(--green); opacity:0.6; pointer-events:none; }
+  .nudge-btn .nbicon { font-size:1rem; }
+
+  /* SHARE SILENCE CARD */
+  .silence-card {
+    background:var(--black); border:2px solid var(--red);
+    padding:1.25rem; margin:1rem 0; text-align:left; width:100%; max-width:340px;
+  }
+  .silence-card-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--red); margin-bottom:0.4rem; }
+  .silence-card-stat { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.6rem; line-height:1.1; margin-bottom:0.3rem; }
+  .silence-card-sub { font-size:0.78rem; color:var(--muted); margin-bottom:0.9rem; line-height:1.4; }
+  .silence-share-btn { width:100%; padding:0.75rem; background:var(--red); border:none; color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.95rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; }
+  .silence-share-btn:active { background:var(--red-bright); }
+
+  /* RESPONSE TRACKER */
+  .response-tracker { background:var(--gray); border:1px solid var(--border); border-left:3px solid var(--green); padding:0.9rem 1rem; margin-top:0.75rem; }
+  .response-tracker-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--green-bright); margin-bottom:0.5rem; }
+  .response-btns { display:flex; gap:0.4rem; }
+  .resp-btn { flex:1; padding:0.6rem 0.4rem; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.75rem; letter-spacing:0.05em; text-transform:uppercase; border:2px solid var(--border); background:transparent; color:var(--white); cursor:pointer; }
+  .resp-btn:active { border-color:var(--green); color:var(--green); }
+  .resp-btn.selected { border-color:var(--green); background:var(--green); color:var(--white); }
+
+  .share-btn { width:100%; max-width:340px; padding:1rem; background:var(--red); border:none; color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.1rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; margin-bottom:0.6rem; display:block; }
+  .share-btn:active { background:var(--red-bright); }
+  .again-btn { width:100%; max-width:340px; padding:0.9rem; background:transparent; border:2px solid var(--border); color:var(--muted); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; display:block; }
+
+  /* SCORECARD SCREEN */
+  #screen-scorecard { overflow-y:auto; }
+  .scorecard-header { padding:1.25rem; border-bottom:1px solid var(--border); }
+  .scorecard-header h2 { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.4rem; text-transform:uppercase; margin-bottom:0.15rem; }
+  .scorecard-office { font-family:'DM Mono',monospace; font-size:0.6rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); }
+
+  .grade-block {
+    padding:1.5rem 1.25rem; border-bottom:1px solid var(--border);
+    display:flex; align-items:center; gap:1.25rem; background:var(--gray);
+  }
+  .grade-letter {
+    font-family:'Barlow Condensed',sans-serif; font-weight:900;
+    font-size:4.5rem; line-height:1; flex-shrink:0; width:70px; text-align:center;
+  }
+  .grade-a { color:var(--green-bright); }
+  .grade-b { color:#8BC34A; }
+  .grade-c { color:#FFC107; }
+  .grade-d { color:#FF9800; }
+  .grade-f { color:var(--red-bright); }
+  .grade-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.3rem; }
+  .grade-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.1rem; text-transform:uppercase; margin-bottom:0.2rem; }
+  .grade-sub { font-size:0.8rem; color:#908880; line-height:1.4; }
+
+  .scorecard-stats { display:flex; border-bottom:1px solid var(--border); }
+  .scorecard-stat { flex:1; padding:1rem 0.75rem; border-right:1px solid var(--border); text-align:center; }
+  .scorecard-stat:last-child { border-right:none; }
+  .sc-n { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1.75rem; color:var(--red-bright); line-height:1; margin-bottom:0.2rem; }
+  .sc-l { font-family:'DM Mono',monospace; font-size:0.52rem; letter-spacing:0.06em; text-transform:uppercase; color:var(--muted); }
+
+  .scorecard-history { padding:1.25rem; }
+  .sc-history-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--muted); margin-bottom:0.75rem; }
+  .sc-row { display:flex; justify-content:space-between; align-items:center; padding:0.65rem 0; border-bottom:1px solid var(--border); font-size:0.85rem; }
+  .sc-row:last-child { border-bottom:none; }
+  .sc-row-label { color:#908880; }
+  .sc-row-val { font-family:'DM Mono',monospace; font-size:0.78rem; }
+  .sc-row-val.good { color:var(--green-bright); }
+  .sc-row-val.bad { color:var(--red-bright); }
+  .sc-row-val.neutral { color:var(--muted); }
+
+  .scorecard-share { padding:1.25rem; border-top:1px solid var(--border); }
+  .sc-share-btn { width:100%; padding:1rem; background:var(--red); border:none; color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; margin-bottom:0.5rem; }
+  .sc-share-btn:active { background:var(--red-bright); }
+  .sc-back-btn { width:100%; padding:0.85rem; background:transparent; border:2px solid var(--border); color:var(--muted); font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:0.9rem; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; }
+
+  /* BILL ALERT */
+  .alert-block { background:var(--black); border:1px solid var(--border); border-left:4px solid #C8972A; padding:1rem 1.25rem; margin-top:0.75rem; }
+  .alert-label { font-family:'DM Mono',monospace; font-size:0.58rem; letter-spacing:0.15em; text-transform:uppercase; color:#C8972A; margin-bottom:0.4rem; }
+  .alert-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:1rem; text-transform:uppercase; margin-bottom:0.3rem; }
+  .alert-sub { font-size:0.8rem; color:#908880; line-height:1.45; margin-bottom:0.75rem; }
+  .alert-row { display:flex; gap:0; width:100%; overflow:hidden; }
+  .alert-input { flex:1; min-width:0; background:var(--gray); border:2px solid var(--border); border-right:none; color:var(--white); font-family:'DM Mono',monospace; font-size:0.85rem; padding:0.65rem 0.75rem; outline:none; -webkit-appearance:none; border-radius:0; }
+  .alert-input::placeholder { color:#444; }
+  .alert-input:focus { border-color:#C8972A; }
+  .alert-btn { flex-shrink:0; background:#8B6914; border:2px solid #8B6914; color:var(--white); font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:0.85rem; letter-spacing:0.06em; text-transform:uppercase; padding:0.65rem 0.9rem; cursor:pointer; border-radius:0; white-space:nowrap; }
+  .alert-btn:active { background:#C8972A; border-color:#C8972A; }
+  .alert-note { margin-top:0.5rem; font-family:'DM Mono',monospace; font-size:0.56rem; letter-spacing:0.06em; color:#444; }
+</style>
+</head>
+<body>
+
+<!-- SCREEN 1: LANDING -->
+<div class="screen active" id="screen-landing">
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <span>Legislature in session &bull; Your rep is voting right now &bull; 60 seconds to act &bull; No account needed &bull; Your voice. Their record. &bull;</span>
+      <span>Legislature in session &bull; Your rep is voting right now &bull; 60 seconds to act &bull; No account needed &bull; Your voice. Their record. &bull;</span>
+    </div>
+  </div>
+  <div class="topbar">
+    <div class="logo">Minnesota's <span>Choice</span></div>
+    <div class="live-badge"><div class="dot"></div>Session Live</div>
+  </div>
+  <div class="body" style="flex:1;display:flex;flex-direction:column;justify-content:center;padding:1.75rem 1.25rem 1.25rem;">
+    <div class="eyebrow">Lawmaker Accountability — Minnesota</div>
+    <h1 class="headline">They're voting.<br><span class="red">Are you watching?</span></h1>
+    <p class="subline">Find your rep. See their record. Call, email, and request a meeting — in under 5 minutes. Free. No signup. Ever.</p>
+    <div class="botw" id="botwCard">
+      <div class="botw-label">⚡ Bill of the Week</div>
+      <div class="botw-title" id="botwTitle">Loading...</div>
+      <div class="botw-stakes" id="botwStakes"></div>
+      <div class="botw-cta">Enter your zip to contact your rep about this bill →</div>
+    </div>
+
+    <div class="alert-block">
+      <div class="alert-label">🔔 Bill Alert</div>
+      <div class="alert-title">Get notified when this bill gets a vote</div>
+      <div class="alert-sub">Enter your email. We'll send one alert when a vote is scheduled — nothing else, ever.</div>
+      <div class="alert-row">
+        <input class="alert-input" type="email" id="alertEmail" placeholder="your@email.com" inputmode="email" autocomplete="email"/>
+        <button class="alert-btn" onclick="subscribeBillAlert()">Alert Me</button>
+      </div>
+      <div class="alert-note">No account. No spam. One email per bill vote. Unsubscribe anytime.</div>
+    </div>
+
+    <div class="zip-block">
+      <div class="zip-label">Your Zip Code</div>
+      <div class="zip-row">
+        <input class="zip-input" type="tel" id="zipInput" maxlength="5" placeholder="55101" inputmode="numeric" autocomplete="postal-code"/>
+        <button class="zip-btn" onclick="startLookup()">Go →</button>
+      </div>
+      <div class="zip-note">Never stored. Used only to find your district.</div>
+    </div>
+  </div>
+  <div class="stats-row">
+    <div class="stat"><div class="stat-n" id="stat-actions">0</div><div class="stat-l">Actions Logged</div></div>
+    <div class="stat"><div class="stat-n">201</div><div class="stat-l">MN Lawmakers</div></div>
+    <div class="stat"><div class="stat-n">201</div><div class="stat-l">Bills This Session</div></div>
+  </div>
+</div>
+
+<!-- SCREEN 2: LOADING -->
+<div class="screen" id="screen-loading">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div></div>
+  <div style="flex:1;display:flex;align-items:center;justify-content:center;">
+    <div class="loading-text">Finding your representatives...</div>
+  </div>
+</div>
+
+<!-- SCREEN 3: REPS -->
+<div class="screen" id="screen-reps">
+  <div class="ticker-wrap">
+    <div class="ticker">
+      <span>Call &bull; Email &bull; Request a Meeting &bull; Do all three. Make them impossible to ignore. &bull;</span>
+      <span>Call &bull; Email &bull; Request a Meeting &bull; Do all three. Make them impossible to ignore. &bull;</span>
+    </div>
+  </div>
+  <div class="topbar">
+    <div class="logo">Minnesota's <span>Choice</span></div>
+    <div class="live-badge"><div class="dot"></div>Session Live</div>
+  </div>
+  <div class="reps-header">
+    <h2>Your Representatives</h2>
+    <div class="district-tag" id="districtTag">ZIP —</div>
+  </div>
+  <div id="repsList"></div>
+  <button class="back-btn" onclick="goTo('screen-landing')">← Different zip code</button>
+</div>
+
+<!-- SCREEN 4: CALL CONFIRM -->
+<div class="screen" id="screen-confirm">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div><button onclick="goTo('screen-reps')" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">← Back</button></div>
+  <div class="confirm-backdrop" onclick="goTo('screen-reps')"></div>
+  <div class="confirm-sheet">
+    <div class="confirm-eyebrow">Step 1 of 4 — Call</div>
+    <div class="confirm-title" id="confirmRepName">Your Representative</div>
+    <div class="confirm-body">Use this script or say what you feel. Confirm after your call — your name stays private but it goes on their public record.</div>
+    <div class="call-script" id="callScript">"Hi, I'm a constituent from zip code [your zip]. I'm calling because I want [their name] to know I'm watching what happens in the legislature and I expect action. Thank you."</div>
+    <div class="confirm-btns">
+      <button class="big-btn yes" onclick="logAction('call')">✓ I Called — Log It</button>
+      <button class="big-btn no" onclick="goTo('screen-reps')">Not Yet — Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 5: EMAIL -->
+<div class="screen" id="screen-email">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div><button onclick="goTo('screen-reps')" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">← Back</button></div>
+  <div class="confirm-backdrop" onclick="goTo('screen-reps')"></div>
+  <div class="confirm-sheet">
+    <div class="confirm-eyebrow">Step 2 of 4 — Email</div>
+    <div class="confirm-title" id="emailRepName">Your Representative</div>
+    <div class="confirm-body">A draft email is ready. Tap Send Email to open it in your mail app, edit if you want, and send. Then log it here.</div>
+    <div class="call-script" id="emailPreview">"Dear [their name], I am a constituent in zip code [your zip]. I am writing to make clear that I expect you to act on behalf of the people you represent. I am watching your record and I will make sure others do too."</div>
+    <div class="confirm-btns">
+      <button class="big-btn yes" id="emailOpenBtn" onclick="openEmail()" style="background:var(--red);border-color:var(--red);margin-bottom:0.5rem;">✉ Open Email Draft</button>
+      <button class="big-btn yes" onclick="logAction('email')">✓ I Sent It — Log It</button>
+      <button class="big-btn no" onclick="goTo('screen-reps')">Not Yet — Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 6: TESTIFY -->
+<div class="screen" id="screen-testify">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div><button onclick="goTo('screen-reps')" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">← Back</button></div>
+  <div class="confirm-backdrop" onclick="goTo('screen-reps')"></div>
+  <div class="confirm-sheet" style="border-top-color:#C8972A;">
+    <div class="confirm-eyebrow" style="color:#C8972A;">Step 3 of 4 — Testify</div>
+    <div class="confirm-title">Sign Up to Testify</div>
+    <div class="confirm-body">Committee testimony is the most powerful thing a constituent can do. Your words go on the official legislative record. Usually takes just a few minutes.</div>
+    <div class="call-script" style="border-left-color:#C8972A;">
+      When you testify, say your name, your zip code, and why this matters to you personally. You don't need to be an expert. You just need to show up.
+    </div>
+    <div class="confirm-btns">
+      <button class="big-btn yes" onclick="openTestify()" style="background:#8B6914;border-color:#8B6914;margin-bottom:0.5rem;">🎙 Open MN Legislature Testimony Signup</button>
+      <button class="big-btn yes" onclick="logAction('testify')">✓ I Signed Up — Log It</button>
+      <button class="big-btn no" onclick="goTo('screen-reps')">Not Yet — Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 7: MEETING -->
+<div class="screen" id="screen-meeting">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div><button onclick="goTo('screen-reps')" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">← Back</button></div>
+  <div class="confirm-backdrop" onclick="goTo('screen-reps')"></div>
+  <div class="confirm-sheet" style="border-top-color:var(--green);">
+    <div class="confirm-eyebrow" style="color:var(--green-bright);">Step 4 of 4 — Request a Meeting</div>
+    <div class="confirm-title" id="meetingRepName">Your Representative</div>
+    <div class="confirm-body">A formal meeting request puts you on their calendar. It's harder to ignore than a call or email. Tap to open the draft and send it.</div>
+    <div class="call-script" style="border-left-color:var(--green);" id="meetingPreview">"Dear [their name], I am a constituent in zip code [your zip] and I am requesting a formal in-person or virtual meeting to discuss issues important to my community. I look forward to your response."</div>
+    <div class="confirm-btns">
+      <button class="big-btn yes" id="meetingOpenBtn" onclick="openMeeting()" style="background:var(--green);border-color:var(--green);margin-bottom:0.5rem;">🤝 Open Meeting Request</button>
+      <button class="big-btn yes" onclick="logAction('meeting')">✓ I Sent It — Log It</button>
+      <button class="big-btn no" onclick="goTo('screen-reps')">Not Yet — Go Back</button>
+    </div>
+  </div>
+</div>
+
+<!-- SCREEN 8: SUCCESS / NUDGE MORE -->
+<div class="screen" id="screen-success">
+  <div class="topbar"><div class="logo">Minnesota's <span>Choice</span></div><div class="live-badge"><div class="dot"></div>Session Live</div></div>
+  <div class="success-inner" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;align-items:center;padding:1.75rem 1.25rem;text-align:center;">
+    <div class="success-num" id="successNum">1</div>
+    <div class="success-label">Contact #<span id="successNumLabel">1</span> on their record</div>
+    <div class="success-title" id="successTitle">Your voice is on record.</div>
+    <div class="success-body" id="successBody">Their response — or silence — is now permanent and public.</div>
+
+    <!-- NUDGE: do the other 3 -->
+    <div class="nudge-box" id="nudgeBox">
+      <div class="nudge-title">Don't stop. Do all four.</div>
+      <div class="nudge-actions" id="nudgeActions"></div>
+    </div>
+
+    <!-- SHARE SILENCE CARD -->
+    <div class="silence-card" id="silenceCard">
+      <div class="silence-card-label">📣 Share their silence</div>
+      <div class="silence-card-stat" id="silenceStat">0 contacts. 0 responses.</div>
+      <div class="silence-card-sub" id="silenceSub">Your rep has received constituent contacts and hasn't responded. Share this so others know.</div>
+      <button class="silence-share-btn" onclick="shareSilence()">Share This →</button>
+    </div>
+
+    <!-- RESPONSE TRACKER -->
+    <div class="response-tracker" id="responseTracker">
+      <div class="response-tracker-label">Did your rep respond?</div>
+      <div class="response-btns">
+        <button class="resp-btn" id="resp-yes" onclick="logResponse('yes')">✓ Yes</button>
+        <button class="resp-btn" id="resp-no" onclick="logResponse('no')">✗ No</button>
+        <button class="resp-btn" id="resp-partial" onclick="logResponse('partial')">~ Partial</button>
+      </div>
+    </div>
+
+    <button class="share-btn" onclick="shareApp()" style="margin-top:1rem;">Share Minnesota's Choice</button>
+    <button class="again-btn" onclick="goTo('screen-reps')" style="margin-top:0.5rem;">← Back to My Reps</button>
+  </div>
+</div>
+
+<!-- SCREEN: SCORECARD -->
+<div class="screen" id="screen-scorecard">
+  <div class="topbar">
+    <div class="logo">Minnesota's <span>Choice</span></div>
+    <button onclick="goTo('screen-reps')" style="background:none;border:none;color:var(--muted);font-family:'DM Mono',monospace;font-size:0.62rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">← Back</button>
+  </div>
+
+  <div class="scorecard-header">
+    <div class="scorecard-office" id="sc-office">MN Legislature</div>
+    <h2 id="sc-name">Lawmaker Name</h2>
+  </div>
+
+  <div class="grade-block">
+    <div class="grade-letter" id="sc-grade-letter">-</div>
+    <div>
+      <div class="grade-label">Constituent Response Grade</div>
+      <div class="grade-title" id="sc-grade-title">No data yet</div>
+      <div class="grade-sub" id="sc-grade-sub">Be the first to contact this rep and start their record.</div>
+    </div>
+  </div>
+
+  <div class="scorecard-stats">
+    <div class="scorecard-stat">
+      <div class="sc-n" id="sc-contacts">0</div>
+      <div class="sc-l">Contacts Received</div>
+    </div>
+    <div class="scorecard-stat">
+      <div class="sc-n" id="sc-responses">0</div>
+      <div class="sc-l">Responses Reported</div>
+    </div>
+    <div class="scorecard-stat">
+      <div class="sc-n" id="sc-rate">—</div>
+      <div class="sc-l">Response Rate</div>
+    </div>
+  </div>
+
+  <div class="scorecard-history">
+    <div class="sc-history-label">Constituent Action History</div>
+    <div class="sc-row">
+      <span class="sc-row-label">📞 Calls logged</span>
+      <span class="sc-row-val neutral" id="sc-calls">0</span>
+    </div>
+    <div class="sc-row">
+      <span class="sc-row-label">✉ Emails sent</span>
+      <span class="sc-row-val neutral" id="sc-emails">0</span>
+    </div>
+    <div class="sc-row">
+      <span class="sc-row-label">🤝 Meetings requested</span>
+      <span class="sc-row-val neutral" id="sc-meetings">0</span>
+    </div>
+    <div class="sc-row">
+      <span class="sc-row-label">✓ Confirmed responses</span>
+      <span class="sc-row-val good" id="sc-yes">0</span>
+    </div>
+    <div class="sc-row">
+      <span class="sc-row-label">✗ No response reported</span>
+      <span class="sc-row-val bad" id="sc-no">0</span>
+    </div>
+    <div class="sc-row">
+      <span class="sc-row-label">~ Partial response</span>
+      <span class="sc-row-val neutral" id="sc-partial">0</span>
+    </div>
+  </div>
+
+  <div class="scorecard-share">
+    <button class="sc-share-btn" onclick="shareScorecard()">Share This Scorecard →</button>
+    <button class="sc-back-btn" onclick="goTo('screen-reps')">← Back to My Reps</button>
+  </div>
+</div>
+
+<script>
+  let currentZip = '';
+  let actionCount = 0;
+  let currentRep = '';
+  let currentRepEmail = '';
+  let currentRepPhone = '';
+  let repCardIndex = 0; // prevents slug collisions on fallback names
+  let currentRepSlug = '';
+
+  // Per-rep action tracking
+  const repActions = {}; // { repSlug: { call, email, testify, meeting } }
+
+  // MN Legislature session check (typically Jan-May)
+  function isSessionLive() {
+    const m = new Date().getMonth() + 1;
+    return m >= 1 && m <= 6;
+  }
+
+  function goTo(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    window.scrollTo(0,0);
+  }
+
+  function startLookup() {
+    const zip = document.getElementById('zipInput').value.trim();
+    if (zip.length !== 5 || !/^\d{5}$/.test(zip)) {
+      const el = document.getElementById('zipInput');
+      el.style.borderColor = 'var(--red-bright)';
+      el.placeholder = 'Need 5 digits';
+      setTimeout(() => { el.style.borderColor=''; el.placeholder='55101'; }, 2000);
+      return;
+    }
+    currentZip = zip;
+    goTo('screen-loading');
+    fetchReps(zip);
+  }
+
+  async function fetchReps(zip) {
+    try {
+      const KEY = 'YOUR_GOOGLE_CIVIC_API_KEY';
+      const res = await fetch(`https://www.googleapis.com/civicinfo/v2/representatives?address=${zip}&levels=administrativeArea1&roles=legislatorLowerBody&roles=legislatorUpperBody&key=${KEY}`);
+      if (!res.ok) throw new Error();
+      renderReps(await res.json());
+    } catch(e) { renderFallback(zip); }
+  }
+
+  function renderReps(data) {
+    repCardIndex = 0;
+    document.getElementById('districtTag').textContent = `ZIP ${currentZip}`;
+    const officials = data.officials || [];
+    const offices = data.offices || [];
+    let html = '';
+    offices.forEach(office => {
+      (office.officialIndices || []).forEach(idx => {
+        const o = officials[idx];
+        if (o) html += repCard(o.name, office.name, o.phones?.[0]||null, o.emails?.[0]||null, null);
+      });
+    });
+    if (!html) { renderFallback(currentZip); return; }
+    document.getElementById('repsList').innerHTML = html;
+    goTo('screen-reps');
+  }
+
+  function renderFallback(zip) {
+    repCardIndex = 0;
+    document.getElementById('districtTag').textContent = `ZIP ${zip}`;
+    document.getElementById('repsList').innerHTML =
+      repCard('Your House Member','MN House of Representatives',null,null,`https://www.house.mn.gov/members/find?zip=${zip}`) +
+      repCard('Your Senate Member','MN Senate',null,null,`https://www.senate.mn/members/find_member.html?zip=${zip}`);
+    goTo('screen-reps');
+  }
+
+  function slug(name, idx) {
+    const base = name.replace(/\s+/g,'-').replace(/[^a-zA-Z0-9-]/g,'').toLowerCase();
+    return idx !== undefined ? base + '-' + idx : base;
+  }
+  function esc(s) { return s.replace(/'/g,"\\'"); }
+
+  function repCard(name, office, phone, email, fallbackUrl) {
+    const idx = repCardIndex++;
+    const s = slug(name, idx);
+    if (!repActions[s]) repActions[s] = { call:false, email:false, testify:false, meeting:false, phone:phone||null, slug:s };
+
+    const safePhone = phone ? phone.replace(/[^0-9+]/g,'') : '';
+    const callClick = phone
+      ? `initCall('${esc(name)}','${safePhone}','${email||''}','${s}')`
+      : `window.open('${fallbackUrl}','_blank')`;
+    const emailClick = `initEmail('${esc(name)}','${email||''}','${s}')`;
+
+    return `
+    <div class="rep-card" id="card-${s}">
+      <div class="ledger-strip">
+        <div class="ledger-count" id="count-${s}">0</div>
+        <div class="ledger-label">constituent contacts on record</div>
+      </div>
+      <div class="rep-inner">
+        <div class="rep-office">${office}</div>
+        <div class="rep-name">${name}</div>
+
+        <div class="four-banner">
+          <div class="four-banner-title">Maximum pressure = all three</div>
+          <div class="four-banner-sub">Each contact makes you harder to ignore</div>
+          <div class="four-steps">
+            <div class="four-step" id="step-call-${s}"><span class="step-icon">📞</span>Call</div>
+            <div class="four-step" id="step-email-${s}"><span class="step-icon">✉</span>Email</div>
+            <div class="four-step" id="step-testify-${s}"><span class="step-icon">🎙</span>Testify</div>
+            <div class="four-step" id="step-meeting-${s}"><span class="step-icon">🤝</span>Meeting</div>
+          </div>
+        </div>
+
+        <div class="action-grid">
+          <button class="act-btn call" id="btn-call-${s}" onclick="${callClick}"><span class="icon">📞</span> Call Now</button>
+          <button class="act-btn" id="btn-email-${s}" onclick="${emailClick}"><span class="icon">✉</span>Email</button>
+          <button class="act-btn" id="btn-testify-${s}" onclick="initTestify('${esc(name)}','${s}')" style="opacity:0.55;font-size:0.72rem;min-height:52px;"><span class="icon" style="font-size:0.95rem;">🎙</span>Testify</button>
+          <button class="act-btn" id="btn-meeting-${s}" onclick="initMeeting('${esc(name)}','${email||''}','${s}')"><span class="icon">🤝</span>Meeting</button>
+        </div>
+        <button onclick="showScorecard('${esc(name)}','${s}')" style="width:100%;margin-top:0.5rem;padding:0.6rem;background:none;border:1px solid var(--border);color:var(--muted);font-family:'DM Mono',monospace;font-size:0.6rem;letter-spacing:0.1em;text-transform:uppercase;cursor:pointer;">📊 View Lawmaker Scorecard →</button>
+      </div>
+    </div>`;
+  }
+
+  // ── ACTION INITIATORS ──
+
+  function initCall(name, phone, email, repSlug) {
+    currentRep = name;
+    currentRepEmail = email || '';
+    currentRepPhone = phone || '';
+    currentRepSlug = repSlug || slug(name);
+    document.getElementById('confirmRepName').textContent = name;
+    document.getElementById('callScript').textContent = '"Hi, my name is [your name] and I\'m a constituent from zip code ' + currentZip + '. I\'m calling to make sure ' + name + ' knows I\'m watching what happens in the legislature and I expect them to act for their community. Thank you."';
+    goTo('screen-confirm');
+    if (phone) setTimeout(() => { window.location.href='tel:' + phone; }, 400);
+  }
+
+  function initEmail(name, email, repSlug) {
+    currentRep = name;
+    currentRepEmail = email || '';
+    currentRepSlug = repSlug || slug(name);
+    document.getElementById('emailRepName').textContent = name;
+    document.getElementById('emailPreview').textContent = '"Dear ' + name + ', I am a constituent in zip code ' + currentZip + '. I am writing to make clear that I expect you to act on behalf of the people you represent. I am watching your record and I will make sure others do too. — A constituent, ZIP ' + currentZip + '"';
+    goTo('screen-email');
+  }
+
+  function openEmail() {
+    const sub = encodeURIComponent(`Constituent Contact — ZIP ${currentZip}`);
+    const body = encodeURIComponent(`Dear ${currentRep},\n\nI am a constituent in zip code ${currentZip}.\n\nI am writing to make clear that I expect you to act on behalf of the people you represent. I am watching your record closely and I will make sure others in my community do too.\n\nPlease respond.\n\nA constituent\nZIP ${currentZip}`);
+    const mailto = currentRepEmail ? `mailto:${currentRepEmail}?subject=${sub}&body=${body}` : `mailto:?subject=${sub}&body=${body}`;
+    window.location.href = mailto;
+  }
+
+  function initTestify(name, repSlug) {
+    currentRep = name;
+    currentRepSlug = repSlug || slug(name);
+    goTo('screen-testify');
+  }
+
+  function openTestify() {
+    window.open('https://www.leg.mn.gov/testimony', '_blank');
+  }
+
+  function initMeeting(name, email, repSlug) {
+    currentRep = name;
+    currentRepEmail = email || '';
+    currentRepSlug = repSlug || slug(name);
+    document.getElementById('meetingRepName').textContent = name;
+    document.getElementById('meetingPreview').textContent = '"Dear ' + name + ', I am a constituent in zip code ' + currentZip + ' and I am requesting a formal meeting to discuss issues important to my community. I am available at your earliest convenience and look forward to your response."';
+    goTo('screen-meeting');
+  }
+
+  function openMeeting() {
+    const sub = encodeURIComponent(`Meeting Request — Constituent, ZIP ${currentZip}`);
+    const body = encodeURIComponent(`Dear ${currentRep},\n\nMy name is [Your Name] and I am a constituent in zip code ${currentZip}.\n\nI am formally requesting a meeting to discuss issues that are important to me and my community.\n\nI am available at your earliest convenience, in person or virtually.\n\nThank you,\n[Your Name]\nZIP ${currentZip}`);
+    const mailto = currentRepEmail ? `mailto:${currentRepEmail}?subject=${sub}&body=${body}` : `mailto:?subject=${sub}&body=${body}`;
+    window.location.href = mailto;
+  }
+
+  // ── LOG ACTION ──
+  function logAction(type) {
+    const s = currentRepSlug || slug(currentRep);
+    if (!repActions[s]) repActions[s] = { call:false, email:false, testify:false, meeting:false };
+    repActions[s][type] = true;
+
+    // Mark step done on rep card
+    const stepEl = document.getElementById(`step-${type}-${s}`);
+    if (stepEl) stepEl.classList.add('done');
+
+    // Mark button done
+    const btnEl = document.getElementById(`btn-${type}-${s}`);
+    if (btnEl) btnEl.classList.add('done-state');
+
+    // Increment global counter
+    actionCount++;
+    document.getElementById('stat-actions').textContent = actionCount;
+
+    // Increment rep ledger
+    const countEl = document.getElementById(`count-${s}`);
+    if (countEl) countEl.textContent = parseInt(countEl.textContent||0) + 1;
+
+    // Show success with nudge
+    showSuccess(type, s);
+
+    // TODO: POST to Supabase
+  }
+
+  const actionLabels = {
+    call: { icon:'📞', label:'Called' },
+    email: { icon:'✉', label:'Emailed' },
+    testify: { icon:'🎙', label:'Signed Up to Testify' },
+    meeting: { icon:'🤝', label:'Requested a Meeting' }
+  };
+
+  const actionNudge = {
+    call: ['email','meeting','testify'],
+    email: ['call','meeting','testify'],
+    testify: ['call','email','meeting'],
+    meeting: ['call','email','testify']
+  };
+
+  function showSuccess(type, repSlug) {
+    const actions = repActions[repSlug];
+    const allDone = actions.call && actions.email && actions.meeting; // testify is optional
+    const doneCount = Object.values(actions).filter(Boolean).length;
+
+    document.getElementById('successNum').textContent = actionCount;
+    document.getElementById('successNumLabel').textContent = actionCount;
+
+    if (allDone) {
+      document.getElementById('successTitle').textContent = 'They cannot ignore you.';
+      document.getElementById('successBody').textContent = actions.testify
+        ? 'You called, emailed, signed up to testify, and requested a meeting. That\'s on their record permanently.'
+        : 'You called, emailed, and requested a meeting. That\'s on their record permanently.';
+      document.getElementById('nudgeBox').style.display = 'none';
+    } else {
+      const coreCount = [actions.call, actions.email, actions.meeting].filter(Boolean).length;
+      document.getElementById('successTitle').textContent = coreCount < 3 ? `${coreCount} of 3 done. Keep going.` : 'Core actions done. Good work.';
+      document.getElementById('successBody').textContent = `Do all four. Each one adds pressure. Together they're impossible to ignore.`;
+      document.getElementById('nudgeBox').style.display = 'block';
+
+      const remaining = actionNudge[type].filter(a => !actions[a]);
+      const nudgeActions = document.getElementById('nudgeActions');
+      nudgeActions.innerHTML = remaining.map(a => `
+        <button class="nudge-btn" onclick="goNudge('${a}','${esc(currentRep)}')">
+          <span class="nbicon">${actionLabels[a].icon}</span>
+          Do: ${a.charAt(0).toUpperCase()+a.slice(1)}
+        </button>
+      `).join('') + (actions.call||actions.email||actions.testify||actions.meeting ? '' : '');
+    }
+
+    // Update silence card with live count
+    const liveCount = parseInt(document.getElementById('count-' + repSlug)?.textContent || 0);
+    updateSilenceCard(currentRep, liveCount);
+
+    goTo('screen-success');
+  }
+
+  function goNudge(type, name) {
+    if (type === 'call') initCall(name, currentRepPhone, currentRepEmail, currentRepSlug);
+    else if (type === 'email') initEmail(name, currentRepEmail, currentRepSlug);
+    else if (type === 'testify') initTestify(name, currentRepSlug);
+    else if (type === 'meeting') initMeeting(name, currentRepEmail, currentRepSlug);
+  }
+
+  // ── FEATURE 1: BILL OF THE WEEK ──
+  // Hardcoded starter bill - swap for OpenStates API pull later
+  const BILL_OF_WEEK = {
+    title: 'HF 1191 / SF 1529 — End Prison Forced Labor',
+    stakes: 'Would close the MN constitutional loophole allowing forced prison labor. Affects thousands of incarcerated Minnesotans. In committee now.',
+    link: 'https://www.revisor.mn.gov/bills/bill.php?f=HF1191&y=2025&ssn=0&b=house'
+  };
+
+  (function loadBOTW() {
+    const el = document.getElementById('botwTitle');
+    const stakes = document.getElementById('botwStakes');
+    if (el) el.textContent = BILL_OF_WEEK.title;
+    if (stakes) stakes.textContent = BILL_OF_WEEK.stakes;
+  })();
+
+  // ── FEATURE 2: SHARE THEIR SILENCE ──
+  function updateSilenceCard(repName, contactCount) {
+    const stat = document.getElementById('silenceStat');
+    const sub = document.getElementById('silenceSub');
+    if (stat) stat.textContent = contactCount + ' constituent contact' + (contactCount !== 1 ? 's' : '') + '. Still waiting for a response.';
+    if (sub) sub.textContent = repName + ' has received ' + contactCount + ' contact' + (contactCount !== 1 ? 's' : '') + ' from constituents and has not responded. Make sure others know.';
+  }
+
+  function shareSilence() {
+    const count = parseInt(document.getElementById('count-' + currentRepSlug)?.textContent || 0);
+    const text = currentRep + ' has received ' + count + ' constituent contact' + (count !== 1 ? 's' : '') + ' and has not responded. Hold them accountable: minnesotaschoice.pages.dev';
+    navigator.share
+      ? navigator.share({ title: currentRep + ' — No Response', text, url: 'https://minnesotaschoice.pages.dev' })
+      : navigator.clipboard.writeText(text).then(() => alert('Copied! Paste it anywhere.'));
+  }
+
+  // ── FEATURE 3: REP RESPONSE TRACKER ──
+  const repResponses = {};
+
+  function logResponse(type) {
+    repResponses[currentRepSlug] = type;
+    document.querySelectorAll('.resp-btn').forEach(b => b.classList.remove('selected'));
+    const el = document.getElementById('resp-' + type);
+    if (el) el.classList.add('selected');
+    // TODO: POST response to Supabase for public ledger
+    // This is the two-sided accountability record
+  }
+
+  // ── SCORECARD ──
+  let scorecardRep = '';
+  let scorecardSlug = '';
+
+  function showScorecard(name, repSlug) {
+    scorecardRep = name;
+    scorecardSlug = repSlug;
+    const actions = repActions[repSlug] || {};
+    const responses = repResponses[repSlug];
+
+    // Populate header
+    document.getElementById('sc-name').textContent = name;
+
+    // Get contact counts from DOM (local session data)
+    const totalContacts = parseInt(document.getElementById('count-' + repSlug)?.textContent || 0);
+    const calls = actions.call ? 1 : 0;
+    const emails = actions.email ? 1 : 0;
+    const meetings = actions.meeting ? 1 : 0;
+
+    // Response data
+    const yesCount = responses === 'yes' ? 1 : 0;
+    const noCount = responses === 'no' ? 1 : 0;
+    const partialCount = responses === 'partial' ? 1 : 0;
+    const totalResponses = yesCount + partialCount;
+
+    // Calculate grade
+    const { letter, title, sub, cls } = calcGrade(totalContacts, totalResponses, noCount);
+
+    // Populate grade
+    const gradeEl = document.getElementById('sc-grade-letter');
+    gradeEl.textContent = letter;
+    gradeEl.className = 'grade-letter grade-' + cls;
+    document.getElementById('sc-grade-title').textContent = title;
+    document.getElementById('sc-grade-sub').textContent = sub;
+
+    // Populate stats
+    document.getElementById('sc-contacts').textContent = totalContacts;
+    document.getElementById('sc-responses').textContent = totalResponses;
+    document.getElementById('sc-rate').textContent = totalContacts > 0
+      ? Math.round((totalResponses / totalContacts) * 100) + '%'
+      : '—';
+
+    // Populate history
+    document.getElementById('sc-calls').textContent = calls;
+    document.getElementById('sc-emails').textContent = emails;
+    document.getElementById('sc-meetings').textContent = meetings;
+    document.getElementById('sc-yes').textContent = yesCount;
+    document.getElementById('sc-no').textContent = noCount;
+    document.getElementById('sc-partial').textContent = partialCount;
+
+    // Style response counts
+    document.getElementById('sc-yes').className = 'sc-row-val ' + (yesCount > 0 ? 'good' : 'neutral');
+    document.getElementById('sc-no').className = 'sc-row-val ' + (noCount > 0 ? 'bad' : 'neutral');
+
+    goTo('screen-scorecard');
+  }
+
+  function calcGrade(contacts, responses, noCount) {
+    if (contacts === 0) {
+      return { letter: '?', cls: 'f', title: 'No record yet', sub: 'Contact this rep to start building their accountability record.' };
+    }
+    const rate = contacts > 0 ? responses / contacts : 0;
+    if (noCount > 0 && responses === 0) {
+      return { letter: 'F', cls: 'f', title: 'No response on record', sub: 'This rep has received constituent contacts and has not responded to any of them.' };
+    }
+    if (rate >= 0.8) return { letter: 'A', cls: 'a', title: 'Highly responsive', sub: 'This rep responds to the majority of constituent contacts on record.' };
+    if (rate >= 0.6) return { letter: 'B', cls: 'b', title: 'Generally responsive', sub: 'This rep responds to most constituent contacts but leaves some unanswered.' };
+    if (rate >= 0.4) return { letter: 'C', cls: 'c', title: 'Inconsistent', sub: 'This rep responds to about half of constituent contacts. Room for improvement.' };
+    if (rate >= 0.2) return { letter: 'D', cls: 'd', title: 'Poor responsiveness', sub: 'This rep responds to few constituent contacts. Their constituents deserve better.' };
+    return { letter: 'F', cls: 'f', title: 'Failing their constituents', sub: 'This rep rarely or never responds to constituent contacts on record.' };
+  }
+
+  function shareScorecard() {
+    const contacts = document.getElementById('sc-contacts').textContent;
+    const rate = document.getElementById('sc-rate').textContent;
+    const grade = document.getElementById('sc-grade-letter').textContent;
+    const text = scorecardRep + ' — Constituent Response Grade: ' + grade + ' | ' + contacts + ' contacts received | ' + rate + ' response rate. See the full record: minnesotaschoice.pages.dev';
+    navigator.share
+      ? navigator.share({ title: scorecardRep + ' Scorecard', text, url: 'https://minnesotaschoice.pages.dev' })
+      : navigator.clipboard.writeText(text).then(() => alert('Copied! Paste it anywhere.'));
+  }
+
+  // ── BILL ALERT ──
+  function subscribeBillAlert() {
+    const email = document.getElementById('alertEmail').value.trim();
+    if (!email || !/^[^@]+@[^@]+\.[^@]+$/.test(email)) {
+      const el = document.getElementById('alertEmail');
+      el.style.borderColor = 'var(--red)';
+      el.placeholder = 'Valid email required';
+      setTimeout(() => { el.style.borderColor=''; el.placeholder='your@email.com'; }, 2000);
+      return;
+    }
+
+    // Zero-cost implementation: mailto to a monitoring address
+    // TODO: replace with Supabase insert when wired
+    const sub = encodeURIComponent('Bill Alert Signup — ' + BILL_OF_WEEK.title);
+    const body = encodeURIComponent('Please add me to bill alerts for: ' + BILL_OF_WEEK.title + '\n\nEmail: ' + email + '\nZIP: ' + (currentZip || 'not provided'));
+    window.location.href = 'mailto:alerts@minnesotaschoice.pages.dev?subject=' + sub + '&body=' + body;
+
+    // Show confirmation in UI
+    const btn = document.querySelector('.alert-btn');
+    const note = document.querySelector('.alert-note');
+    if (btn) { btn.textContent = '✓ Signed Up'; btn.style.background='var(--green)'; btn.style.borderColor='var(--green)'; btn.disabled=true; }
+    if (note) note.textContent = 'You\'re on the list. One email when a vote is scheduled — nothing else.';
+    document.getElementById('alertEmail').disabled = true;
+  }
+
+  function shareApp() {
+    const text = `Hold your MN lawmakers accountable in 60 seconds. Call. Email. Testify. Request a meeting. Free. No signup. minnesotaschoice.pages.dev`;
+    navigator.share
+      ? navigator.share({title:"Minnesota's Choice",text,url:'https://minnesotaschoice.pages.dev'})
+      : navigator.clipboard.writeText(text).then(()=>alert('Copied!'));
+  }
+
+  // Session status on load
+  (function() {
+    const live = isSessionLive();
+    if (!live) {
+      document.querySelectorAll('.live-badge').forEach(el => {
+        el.innerHTML = '<div class="dot" style="background:#666;animation:none;"></div>Monitoring';
+      });
+    }
+  })();
+
+  document.getElementById('zipInput').addEventListener('keydown', e => { if(e.key==='Enter') startLookup(); });
+</script>
+</body>
+</html>
